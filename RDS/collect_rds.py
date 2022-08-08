@@ -2,7 +2,9 @@
 import boto3
 from prettytable import PrettyTable
 
-ec2_client = boto3.client('ec2')
+session = boto3.Session(profile_name='default')
+
+ec2_client = session.client('ec2')
 regions = ec2_client.describe_regions()
 
 final_table = PrettyTable()
@@ -18,14 +20,19 @@ def all_regions(regions):
 def collect_rds(all_regions_list):
     for region in all_regions_list:
         print("Checking region is:",region)
-        rds_client = boto3.client('rds', region_name=region)
+        rds_client = session.client('rds', region_name=region)
         response = rds_client.describe_db_instances()
         list_response = list(response.items())[0][1]
-        # An additional part which works with tags
         for rds in list_response:
-            for tag in rds['TagList']:
-                if tag['Key'] == 'terraform':
-                    final_table.add_row([rds['DBInstanceIdentifier'], rds['BackupRetentionPeriod'], rds['AvailabilityZone'], tag['Value']])
+            if rds['TagList']:
+                if any(d['Key'] == 'terraform' for d in rds['TagList']):
+                    for tag in rds['TagList']:
+                        if tag['Key'] == 'terraform':
+                            final_table.add_row([rds['DBInstanceIdentifier'], rds['BackupRetentionPeriod'], rds['AvailabilityZone'], tag['Value']])
+                else:
+                    final_table.add_row([rds['DBInstanceIdentifier'], rds['BackupRetentionPeriod'], rds['AvailabilityZone'], ''])
+            else:
+                final_table.add_row([rds['DBInstanceIdentifier'], rds['BackupRetentionPeriod'], rds['AvailabilityZone'], ''])
     print(final_table)
 
 def main():
