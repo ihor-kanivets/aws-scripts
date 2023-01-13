@@ -32,7 +32,7 @@ def collect_lambdas(all_regions_list):
     print(final_table)
 
 def main():
-    rgions_list = all_regions(regions)
+    regions_list = all_regions(regions)
     lambdas_list = collect_lambdas(all_regions_list)
 
 if __name__ == "__main__":
