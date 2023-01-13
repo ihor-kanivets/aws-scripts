@@ -23,15 +23,10 @@ def collect_secrets(all_regions_list):
         print('Check secrets in the region')
         print(region)
         if len(response['SecretList']) !=0:
-            session = boto3.Session(profile_name=aws_profile, region_name=region)
-            ec2_client = session.client('secretsmanager')
-            response = ec2_client.list_secrets()
-            results = response["SecretList"]
-
             while "NextToken" in response:
                 response = ec2_client.list_secrets(NextToken=response["NextToken"])
                 for secret in response['SecretList']:
-                    if 'whitelist' in secret['Name']:
+                    if 'SEARCHING_WORD_IN_SECRET' in secret['Name']:
                         final_table.add_row([secret['Name'], region])
     print(final_table)
 
